@@ -17,6 +17,10 @@ In this project, you can build your own C++ application starting with this repo,
   * Linux: gcc / g++ is installed by default on most Linux distros
   * Mac: same deal as make - [install Xcode command line tools](https://developer.apple.com/xcode/features/)
   * Windows: recommend using [MinGW](http://www.mingw.org/)
+* OpenCV >= 3.0
+  * Linux: [Installation](https://docs.opencv.org/3.4/d7/d9f/tutorial_linux_install.html)
+  * Mac: [Installation](https://docs.opencv.org/3.4/d0/db2/tutorial_macos_install.html)
+  * Windows: [Installation](https://docs.opencv.org/3.4/d3/d52/tutorial_windows_install.html)
 
 ## Basic Build Instructions
 

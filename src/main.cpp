@@ -6,9 +6,6 @@
 #include <opencv2/objdetect.hpp>
 #include <opencv2/highgui.hpp>
 
-// TODO: 
-// 1. train custom cascade classifier model
-
 int main(int argc, const char** argv) {
 
     cv::CommandLineParser parser(argc, argv, 
@@ -44,27 +41,34 @@ int main(int argc, const char** argv) {
         return -1;
     }
 
+    // resize image
+    cv::Size size(200, 200);
+    cv::Mat resizedImg;
+    cv::resize(img, resizedImg, size);
+
+    auto cascadePath = "../data/cascade_cars.xml";
+
     // use this to initialize model once you have a trained model
-    // cv::CascadeClassifier vehicleCascade;
-    // vehicleCascade.load("");
+    cv::CascadeClassifier vehicleCascade;
+    vehicleCascade.load(cascadePath);
 
     // convert input image to grayscale
     cv::Mat grayscale;
-    cv::cvtColor(img, grayscale, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(resizedImg, grayscale, cv::COLOR_BGR2GRAY);
 
     // vehicle detection
-    // std::vector<cv::Rect> vehicles;
-    // vehicleCascade.detectMultiScale(grayscale, vehicles, 1.1, 3, 0, cv::Size(30, 30));
+    std::vector<cv::Rect> vehicles;
+    vehicleCascade.detectMultiScale(grayscale, vehicles, 1.1, 3, 0, cv::Size(30, 30));
 
     // draw bounding box in original image
-    // may have to introduce scaling to optimize performance
-    // for (auto& area : vehicles) {
-    //     cv::Scalar boxColor = cv::Scalar(255, 0, 0);
-    //     cv::rectangle(img, cv::Point(area.x, area.y), cv::Point(area.x + area.width, area.y + area.height), boxColor);
-    // }
+    // may have to introduce scaling in the future to optimize performance
+    for (auto& area : vehicles) {
+        cv::Scalar boxColor = cv::Scalar(200, 255, 0);
+        cv::rectangle(resizedImg, cv::Point(area.x, area.y), cv::Point(area.x + area.width, area.y + area.height), boxColor);
+    }
 
     cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
-    cv::imshow("Display Image", img);
+    cv::imshow("Display Image", resizedImg);
 
     cv::waitKey(0);
 

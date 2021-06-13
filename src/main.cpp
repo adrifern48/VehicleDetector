@@ -1,76 +1,68 @@
 #include <iostream>
-#include <fstream>
-#include <vector>
+#include <sys/stat.h>
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/objdetect.hpp>
 #include <opencv2/highgui.hpp>
 
+#include "CarDetector.h"
+
+int validateArgs(const std::string& imgPath, const std::string& cascadePath) {
+    int retCode = 0;
+    if (imgPath.empty()) {
+        std::cout << "Please provide a valid input image path.\n";
+        retCode = -1;
+    }
+
+    if (cascadePath.empty()) {
+        std::cout << "Please provide a valid haar cascade file path.\n";
+        retCode = -1;
+    }
+
+    struct stat st;
+    if (!imgPath.empty() && stat(imgPath.c_str(), &st) != 0) {
+        std::cout << "Input image file doesn't exist!\n";
+        retCode = -1;
+    }
+
+    if (!cascadePath.empty() && stat(cascadePath.c_str(), &st) != 0) {
+        std::cout << "Input cascade file doesn't exist!\n";
+        retCode = -1;
+    }
+
+    return retCode;
+}
+
 int main(int argc, const char** argv) {
-
     cv::CommandLineParser parser(argc, argv, 
-                                    "{help ||Show help}"
-                                    "{@input_image |<none> | Path to input image.}");
+                                    "{help h usage ? ||Show help}"
+                                    "{img i| <none> | Path to input image.}"
+                                    "{cascade c| ../data/cascade_cars.xml | Path to cascade classifier file}");
 
-    parser.about("\nThis program detects vehicles in static images using cv::CascadeClassifiers and Haar-like features");
+    parser.about("\nThis program detects vehicles (just cars for now) in static images using OpenCV CascadeClassifiers and Haar-like features.\n");
     if (parser.has("help")) {
         parser.printMessage();
         return 0;
     }
 
-    std::ifstream file;
-    auto inputImage = parser.get<cv::String>(0);
-    // std::cout << "input_image: " << input_image << "\n";
+    auto inputImgPath = parser.get<std::string>("i");
+    auto cascadePath = parser.get<std::string>("c");
+    auto validArgsCode = validateArgs(inputImgPath, cascadePath);
 
-    if (inputImage.empty()) {
-        std::cout << "Please provide a a valid input image path.\n";
+    if (validArgsCode != 0) 
+        return validArgsCode;
+
+    cv::Mat outputImg;
+    std::unique_ptr<CarDetector> detector = std::make_unique<CarDetector>(cascadePath);
+    detector->Detect(inputImgPath, outputImg);
+
+    if (outputImg.data) {
+        cv::namedWindow("Vehicle Detection", cv::WINDOW_AUTOSIZE);
+        cv::imshow("Vehicle Detection", outputImg);
+        cv::waitKey(0);
+    } else {
+        std::cout << "Error occurred during detection.\n";
         return -1;
     }
-
-    file.open(inputImage);
-    if (!file) {
-        std::cout << "Input image file doesn't exist! Exiting...\n";
-        return -1;
-    }
-    file.close();
-
-    cv::Mat img = cv::imread(inputImage, 1);
-
-    if (!img.data) {
-        std::cout << "Invalid image data!\n";
-        return -1;
-    }
-
-    // resize image
-    cv::Size size(200, 200);
-    cv::Mat resizedImg;
-    cv::resize(img, resizedImg, size);
-
-    auto cascadePath = "../data/cascade_cars.xml";
-
-    // use this to initialize model once you have a trained model
-    cv::CascadeClassifier vehicleCascade;
-    vehicleCascade.load(cascadePath);
-
-    // convert input image to grayscale
-    cv::Mat grayscale;
-    cv::cvtColor(resizedImg, grayscale, cv::COLOR_BGR2GRAY);
-
-    // vehicle detection
-    std::vector<cv::Rect> vehicles;
-    vehicleCascade.detectMultiScale(grayscale, vehicles, 1.1, 3, 0, cv::Size(30, 30));
-
-    // draw bounding box in original image
-    // may have to introduce scaling in the future to optimize performance
-    for (auto& area : vehicles) {
-        cv::Scalar boxColor = cv::Scalar(200, 255, 0);
-        cv::rectangle(resizedImg, cv::Point(area.x, area.y), cv::Point(area.x + area.width, area.y + area.height), boxColor);
-    }
-
-    cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
-    cv::imshow("Display Image", resizedImg);
-
-    cv::waitKey(0);
 
     return 0;
 }

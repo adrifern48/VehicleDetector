@@ -14,6 +14,7 @@ void CarDetector::Detect(const std::string& imgPath, cv::Mat& outputImg) {
         return;
     }
 
+    // Classifier was trained on 64x64 images, so need to resize original
     auto resized = ResizeImage(img, 200, 200);
 
     // Load Haar Cascade

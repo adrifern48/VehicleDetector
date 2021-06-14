@@ -6,6 +6,7 @@
 
 #include "CarDetector.h"
 
+// Helper function
 int validateArgs(const std::string& imgPath, const std::string& cascadePath) {
     int retCode = 0;
     if (imgPath.empty()) {

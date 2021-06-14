@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <sys/stat.h>
 
 #include <opencv2/opencv.hpp>
